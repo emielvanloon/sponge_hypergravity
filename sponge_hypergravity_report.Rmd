@@ -218,9 +218,8 @@ stage of development that was subjected to a combination of the two experimental
   (*label*; levels: N for not-fed, L for fed) 
 
 For each sponge the surface area before and after being subjected to the gravitational
-condition was being recorded (*surf_before* and *surf_after*, in mm).
-Also the development stage that the sponge reached was recorded (*stage3* or *stage4*;
-recorded as a binary variable, stage 4 can only be reached after state3 has been reached).
+condition was being recorded (*surf_before* and *surf_after*, in $mm^2$).
+Also the development stage that the sponge reached was recorded (*stage3* or *stage4*; as a binary variable, stage 4 can only be reached after state3 has been reached).
 Reaching stage 4 means that the sponge has formed a so-called osculum.
 
 The surface change for each sponge is calculated by *surf_after* - *surf_before* (*surface*).
@@ -386,8 +385,7 @@ mk_fig5 <- function(out='screen', S=spongeCN){
   label_yaxis1 <- 'Amino acid assimilation'
   label_yaxis2 <- expression('('*μmol~C~or~N[~tracer]~mmol~C~or~N[~sponge]^{-1}~d^{−1}*')')
   label_yaxis3 <- expression('('*μmol~C~or~N[~tracer]~(mmol~C~or~N[~sponge]~d)^{−1}*')')
-  
-  
+
   if(out=='png'){ png('fig5.png') }
   if(out=='pdf'){ pdf('fig5.pdf') }
   
