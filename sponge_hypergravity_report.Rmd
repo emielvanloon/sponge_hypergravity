@@ -1,0 +1,596 @@
+---
+title: "Analysis report - sponge under hypergravity"
+author: "Emiel van Loon"
+date: "August 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+
+# dataset spongeCN
+{
+spongeCN <- structure(
+  list( stage4 = c(1L, 1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L, 0L), 
+        G = c(1.0, 2.5, 5.0, 10.0, 20.0, 1.0, 2.5, 5.0, 10.0, 20.0), 
+        C = c(0.998, 0.648, 0.975, 0.662, 0.711, 0.837, 0.782, 0.874, 0.845, 0.725), 
+        N = c(4.933, 4.127, 5.852, 3.292, 2.913, 4.483, 5.014, 5.467, 4.420, 2.972)), 
+  .Names = c("stage4","G", "C", "N"), class = "data.frame", row.names = c(NA, -10L))
+
+# An extra categorical variable for G is added.
+spongeCN$Gc <- as.factor( paste0(spongeCN$G,'G') )
+spongeCN <- spongeCN[,c('stage4','G','Gc','C','N')]
+}
+
+# dataset spongeSO
+{
+spongeSO <- structure(
+list(plate = c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 
+2L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 10L, 
+10L, 10L, 10L, 10L, 10L, 11L, 11L, 11L, 11L, 12L, 12L, 12L, 12L, 
+12L, 12L, 13L, 13L, 13L, 13L, 13L, 13L, 4L, 4L, 4L, 4L, 4L, 4L, 
+5L, 5L, 5L, 5L, 5L, 5L, 5L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 6L, 14L, 
+14L, 14L, 14L, 14L, 14L, 15L, 15L, 15L, 16L, 16L, 16L, 16L, 16L, 
+16L, 17L, 17L, 17L, 17L, 17L, 7L, 7L, 7L, 7L, 7L, 7L, 7L, 8L, 
+8L, 8L, 8L, 8L, 8L, 8L, 9L, 9L, 9L, 9L, 9L, 9L, 9L, 18L, 18L, 
+18L, 18L, 18L, 18L, 18L, 18L, 19L, 19L, 19L, 19L, 19L, 19L, 20L, 
+20L, 20L, 20L, 20L, 20L, 20L, 21L, 21L, 21L, 21L, 22L, 22L, 22L, 
+22L, 22L, 22L, 22L, 23L, 23L, 23L, 23L, 23L, 23L, 23L, 23L, 24L, 
+24L, 24L, 24L, 28L, 28L, 28L, 28L, 28L, 28L, 28L, 29L, 29L, 29L, 
+29L, 29L, 29L, 29L, 29L, 30L, 30L, 30L, 30L, 30L, 31L, 31L, 31L, 
+31L, 31L, 31L, 31L, 31L, 31L, 25L, 25L, 25L, 25L, 25L, 25L, 26L, 
+26L, 26L, 26L, 26L, 26L, 26L, 27L, 27L, 27L, 27L, 27L, 27L, 27L, 
+32L, 32L, 32L, 32L, 32L, 32L, 32L, 33L, 33L, 33L, 33L, 33L, 33L, 
+34L, 34L, 34L, 34L, 35L, 35L, 35L, 35L, 35L, 35L, 35L, 35L, 35L), 
+position = structure(c(1L, 4L, 5L, 7L, 8L, 10L, 11L, 12L, 
+2L, 6L, 8L, 9L, 11L, 12L, 1L, 3L, 4L, 6L, 7L, 8L, 9L, 10L, 11L, 
+12L, 3L, 6L, 7L, 8L, 9L, 12L, 4L, 5L, 8L, 12L, 3L, 5L, 7L, 9L, 
+10L, 11L, 3L, 4L, 7L, 8L, 11L, 12L, 1L, 2L, 3L, 4L, 8L, 12L, 
+3L, 4L, 5L, 6L, 9L, 11L, 12L, 1L, 2L, 5L, 7L, 8L, 9L, 10L, 11L, 
+2L, 3L, 4L, 6L, 7L, 12L, 4L, 8L, 11L, 3L, 4L, 5L, 7L, 9L, 10L, 
+1L, 2L, 4L, 6L, 11L, 2L, 5L, 7L, 8L, 9L, 10L, 11L, 1L, 3L, 4L, 
+7L, 8L, 9L, 10L, 2L, 3L, 4L, 6L, 8L, 9L, 11L, 3L, 4L, 5L, 7L, 
+8L, 9L, 11L, 12L, 2L, 3L, 6L, 9L, 10L, 12L, 4L, 5L, 7L, 8L, 10L, 
+11L, 12L, 4L, 5L, 7L, 10L, 1L, 3L, 5L, 6L, 7L, 9L, 12L, 1L, 2L, 
+4L, 6L, 8L, 9L, 10L, 12L, 4L, 7L, 8L, 9L, 1L, 3L, 6L, 7L, 9L, 
+10L, 11L, 1L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 2L, 3L, 5L, 8L, 11L, 
+1L, 2L, 3L, 5L, 6L, 7L, 8L, 9L, 10L, 1L, 3L, 7L, 10L, 11L, 12L, 
+2L, 4L, 6L, 8L, 9L, 11L, 12L, 1L, 3L, 4L, 5L, 7L, 11L, 12L, 1L, 
+3L, 4L, 5L, 7L, 9L, 12L, 1L, 2L, 4L, 6L, 8L, 12L, 2L, 5L, 6L, 
+9L, 1L, 2L, 3L, 4L, 5L, 6L, 8L, 9L, 11L), .Label = c("A1", "A2", 
+"A3", "A4", "B1", "B2", "B3", "B4", "C1", "C2", "C3", "C4"), class = "factor"), 
+G = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 
+    2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 
+    2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 
+    2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 5, 
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
+    5, 5, 5, 5, 5, 5, 5, 10, 10, 10, 10, 10, 10, 10, 10, 10, 
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 20, 20, 20, 20, 20, 20, 
+    20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 
+    20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 
+    20, 20, 20, 20, 20, 20, 20, 20, 20, 20), 
+label = structure(c(2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+    2L, 2L, 2L, 2L, 2L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L), .Label = c("L", "N"), class = "factor"), 
+surf_before = c(0.62, 
+    0.46, 0.7, 0.7, 1.04, 0.73, 0.8, 1.04, 0.42, 0.36, 0.31, 
+    0.62, 0.35, 0.31, 0.73, 0.36, 0.46, 0.81, 0.79, 0.6, 0.83, 
+    0.7, 1.03, 0.67, 0.22, 0.91, 1.28, 0.58, 0.36, 0.33, 0.72, 
+    0.52, 0.71, 0.68, 0.8, 0.63, 0.72, 0.45, 0.79, 0.28, 0.57, 
+    0.46, 0.92, 0.3, 0.9, 0.78, 0.8, 0.36, 0.31, 0.5, 0.51, 0.66, 
+    0.4, 0.62, 0.98, 0.37, 0.56, 0.61, 0.5, 0.63, 0.74, 1.09, 
+    0.69, 1.31, 0.77, 0.82, 0.45, 0.56, 0.62, 0.47, 0.71, 1.16, 
+    1.09, 0.7, 0.46, 0.85, 0.48, 0.7, 0.54, 0.45, 0.6, 0.71, 
+    0.24, 0.3, 0.63, 0.95, 0.74, 0.2, 0.24, 0.22, 0.36, 0.72, 
+    0.65, 0.37, 0.63, 0.4, 0.33, 0.27, 0.71, 0.49, 0.42, 0.55, 
+    0.25, 0.28, 0.26, 0.41, 0.37, 0.6, 0.73, 0.46, 0.64, 0.73, 
+    0.31, 0.58, 0.48, 0.66, 0.49, 0.63, 0.25, 0.53, 0.41, 0.39, 
+    0.58, 0.58, 0.46, 0.39, 0.63, 0.84, 0.37, 0.64, 0.35, 0.41, 
+    0.45, 0.37, 0.49, 0.51, 0.92, 0.2, 0.78, 0.78, 0.18, 0.42, 
+    0.51, 0.41, 0.64, 0.63, 0.65, 0.62, 1, 0.68, 0.82, 0.79, 
+    0.72, 0.51, 1.11, 0.89, 1.11, 0.58, 0.91, 0.62, 0.45, 0.54, 
+    1.05, 0.62, 0.65, 0.58, 0.77, 0.38, 0.92, 0.51, 0.69, 0.51, 
+    0.38, 0.63, 0.93, 0.83, 0.66, 0.51, 0.79, 0.28, 0.58, 0.44, 
+    0.86, 0.65, 0.79, 0.9, 0.65, 0.44, 0.55, 0.41, 0.78, 0.77, 
+    0.85, 0.69, 0.88, 0.91, 0.46, 0.73, 0.58, 0.73, 0.74, 0.58, 
+    0.5, 0.46, 0.97, 0.94, 0.28, 0.67, 0.69, 0.26, 0.6, 0.7, 
+    0.3, 0.66, 0.61, 0.9, 0.83, 0.65, 0.72, 0.45, 0.43, 0.49, 
+    0.88, 0.74, 0.75, 0.89, 0.68), 
+surf_after = c(1.54, 1.22, 
+    1.17, 1.58, 1.4, 1.28, 1.49, 1.28, 0.9, 0.8, 0.68, 1.42, 
+    0.73, 0.83, 1.94, 0.76, 1.19, 1.34, 1.52, 1.34, 1.82, 1.5, 
+    1.55, 0.96, 1, 1.39, 2.03, 1.37, 1.13, 1.05, 1.35, 1.12, 
+    1.03, 1.09, 1.07, 1.05, 1.27, 0.99, 1.36, 1.06, 0.99, 1.01, 
+    1.16, 1.68, 1.7, 1.2, 1.28, 0.87, 0.8, 0.83, 1.03, 1.74, 
+    0.93, 1.11, 1.57, 0.76, 1.07, 1.05, 1.1, 1.24, 1.34, 1.57, 
+    1.21, 2.28, 0.85, 1.99, 1.51, 1.24, 1.09, 1.15, 1.51, 2.42, 
+    1.92, 1.07, 1.15, 1.4, 1.15, 1.09, 0.99, 1.61, 1.05, 1.24, 
+    0.37, 0.39, 1.19, 1.04, 1.45, 0.9, 0.47, 0.58, 0.73, 0.8, 
+    0.95, 0.81, 1.03, 0.94, 0.64, 0.59, 1.44, 1.06, 0.69, 0.92, 
+    0.66, 0.71, 0.51, 1.21, 1.01, 0.94, 1.48, 0.65, 0.84, 0.88, 
+    0.56, 1.03, 1.09, 1.11, 0.85, 1.07, 1.16, 1.02, 0.73, 1.14, 
+    1.09, 1.44, 1.07, 0.77, 1.58, 0.96, 1.04, 0.96, 1.4, 0.8, 
+    0.83, 0.78, 0.98, 0.83, 1.13, 0.94, 1.08, 1.23, 0.84, 0.89, 
+    1.09, 0.87, 1, 1.29, 1.24, 0.89, 1.1, 1.13, 1.16, 0.91, 1.8, 
+    1.13, 1.89, 1, 1.26, 0.65, 1.36, 0.71, 1.11, 0.89, 1.6, 0.73, 
+    2.17, 1.17, 1.59, 0.96, 1.31, 1.23, 1.85, 0.79, 0.7, 1.07, 
+    1.07, 1.09, 0.83, 0.81, 1.19, 0.5, 0.79, 0.76, 1.36, 1, 1.47, 
+    1.12, 1.24, 1.09, 0.73, 0.74, 0.83, 1.03, 1.02, 0.82, 1.44, 
+    1.41, 1.02, 1.36, 0.95, 1.18, 0.75, 0.62, 1.32, 0.51, 1.21, 
+    1.58, 0.6, 1.1, 1.47, 0.58, 1.17, 1.09, 0.44, 1.16, 0.8, 
+    1.49, 1.39, 1.26, 1.2, 0.86, 0.88, 1.27, 1.2, 1.56, 1.42, 
+    1.56, 1.09), 
+stage3 = c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 0L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 0L, 1L, 1L, 1L, 1L, 1L, 0L, 1L, 0L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L), 
+stage4 = c(1L, 0L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 0L, 1L, 0L, 1L, 1L, 0L, 1L, 1L, 0L, 1L, 
+    0L, 1L, 1L, 1L, 0L, 0L, 1L, 1L, 1L, 1L, 0L, 1L, 1L, 1L, 0L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 0L, 1L, 1L, 0L, 1L, 0L, 0L, 1L, 1L, 1L, 0L, 
+    1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 
+    0L, 0L, 1L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 
+    0L, 0L, 0L, 1L, 0L, 1L, 0L, 1L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 
+    0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 
+    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 0L, 1L, 0L, 1L, 0L, 
+    1L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 
+    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)), 
+.Names = c("plate", "position", "G", "label", "surf_before", "surf_after", 
+           "stage3", "stage4"), class = "data.frame", row.names = c(NA, -227L))
+
+spongeSO$surface <- round(spongeSO$surf_after - spongeSO$surf_before,2)    
+spongeSO$perc <- round(100*spongeSO$surf_after/spongeSO$surf_before,1)
+}
+
+```
+
+## Introduction
+
+This is an analysis report, providing the data and statistical analyses for an 
+experiment by Martijn Bart and others on spiculous skeleton formation in the 
+freshwater sponge E.fluviatilis under hypergravity conditions.
+A paper describing this experiment has been submitted to PeerJ in August 2018.
+The idea of the experiment was to investigate to what degree large g-forces 
+prevent sponges to grow (i.e. expand their surface area and form oscula) and 
+take up dissolved food (i.e. amino acids); and whether g-forces affect skeleton 
+and osculum formation in interaction with additional feeding.
+
+With this report it should be possible to get a basic understanding of the 
+data that were collected in the experiment and follow the statistical analyses, 
+but it is not meant to be studied independently from the paper. 
+The paper provides contextual information as well as relevant details about 
+sponge biology, accurate definitions of the various terms, and details of how 
+the observations were exactly obtained.
+
+
+## Preparation {.tabset .tabset-fade}
+
+This section provides the data (there are two data tables: spongeCN and spongeSO) 
+and provides the option do download and save the data locally. 
+In addition, some functions are specified which are used later in the analysis.
+
+### spongeSO
+
+This data table comprises 277 rows (uniquely identified by the combined labels 
+in *plate* and *position*), each representing a small sponge in an early 
+stage of development that was subjected to a combination of the two experimental treatments: 
+
+- a certain gravitational condition (*G*; levels that were used: 1, 2.5, 5, 10 and 20g),
+- feeding with dissolved amino acids which were isotopically (13C and 15N) enriched 
+  (*label*; levels: N for not-fed, L for fed) 
+
+For each sponge the surface area before and after being subjected to the gravitational
+condition was being recorded (*surf_before* and *surf_after*, in mm).
+Also the development stage that the sponge reached was recorded (*stage3* or *stage4*;
+recorded as a binary variable, stage 4 can only be reached after state3 has been reached).
+Reaching stage 4 means that the sponge has formed a so-called osculum.
+
+The surface change for each sponge is calculated by *surf_after* - *surf_before* (*surface*).
+And the relative surface change is calculated by (*surf_after* - *surf_before*)/*surf_before* (*perc*).
+
+```{r echo=FALSE}
+DT::datatable(spongeSO,rownames= F,
+              extensions = 'Scroller', 
+              options = list(dom = 'Bt', deferRender = TRUE, scrollY = 200,
+                             scroller = TRUE,buttons = c('copy', 'csv', 'excel'))
+              )
+```
+
+### spongeCN 
+
+Ten composite samples were made from individual sponges that were subjected to
+each unique combination of gravitational condition (*G* and *Gc*; levels 1, 2.5, 5, 10 and 20g), 
+and reaching stage4 (*stage4*, 1 or 0). For each of these samples the 13C:12C and
+15N:14N ratios were determined (*C* and *N*).  
+
+```{r echo=FALSE}
+library(DT)
+DT::datatable(spongeCN,
+              extensions = 'Buttons', options = list( dom = 'Bt',
+              buttons = c('copy', 'csv', 'excel'))
+              )
+
+```
+
+### Nagelkerke's R2
+
+Function to claculate Nagelkerke's R-squared (an R-squared value which is being
+used for logistic regression models). The function is used in Analysis 3.
+
+```{r}
+R2NK <- function(rr) 
+{
+  n <- nrow(rr$model)
+  R2 <- (1 - exp((rr$dev - rr$null)/n))/(1 - exp(-rr$null/n))
+  RVAL <- list(N = n, R2 = R2)
+  return(RVAL)
+}
+```
+
+### Figure 4
+
+Function to create a scatter plot of two series, with circles as symbols and simple lines as error-bars. It includes a legend & axis break.
+The function has the option to save the output to png, pdf or svg as well.
+It uses the axis.break function from the plotrix package.
+
+```{r}
+mk_fig4 <- function(out='screen',S=spongeSO){
+  
+  # calculate means and standard errors per g-force level 
+  
+  fed <- S$label=='L'
+  m_fed <- aggregate(S$perc[fed]~S$G[fed],FUN=mean)
+  s_fed <- aggregate(S$perc[fed]~S$G[fed],FUN=sd)
+  se_fed <- aggregate(S$perc[fed]~S$G[fed],
+                      FUN=function(x) sd(x)/sqrt(length(x)) )
+  ms_fed <- data.frame(g=m_fed[,1], mean=m_fed[,2], se=se_fed[,2]) 
+  
+  m_nonfed <- aggregate(S$perc[!fed]~S$G[!fed],FUN=mean)
+  s_nonfed <- aggregate(S$perc[!fed]~S$G[!fed],FUN=sd)
+  se_nonfed <- aggregate(S$perc[!fed]~S$G[!fed],
+                         FUN=function(x) sd(x)/sqrt(length(x)) )
+  ms_nonfed <- data.frame(g=m_nonfed[,1], mean=m_nonfed[,2], 
+                          se=se_nonfed[,2]) 
+  
+  xf <- c(1:5)-0.1
+  xn <- c(1:5)+0.1
+  xfl <- c( rbind(xf,xf,rep(NA,5)) )
+  yfl <- c( rbind( ms_fed$mean+ms_fed$se, ms_fed$mean-ms_fed$se, rep(NA,5)) )
+  xnfl <- c( rbind(xn,xn,rep(NA,5)) )
+  ynfl <- c( rbind( ms_nonfed$mean+ms_nonfed$se, ms_nonfed$mean-ms_nonfed$se, rep(NA,5)) )
+  
+  if(out=='png'){ png('fig4.png') }
+  if(out=='pdf'){ pdf('fig4.pdf') }
+  if(out=='svg'){ svg('fig4.svg') }
+  
+  op <- par(no.readonly = TRUE) # the whole list of settable pars
+  par(mar=c(3,6,1,1))
+  
+  plot(xf, ms_fed$mean, type='n', bty='n', las=1, 
+       yaxt="n",xaxt="n", 
+       xlim = c(0, 6), ylim = c(140, 256), xaxs="i",
+       ylab = '',
+       xlab = '',
+       cex.lab=1.4, cex.axis=1.4)
+  
+  lines(xfl, yfl, col = "black")
+  lines(xnfl, ynfl, col = "black")
+  points(xf, ms_fed$mean, col = "black", pch = 21, bg = "grey", cex = 2)
+  points(xn, ms_nonfed$mean, col = "black", pch = 21, bg = "black", cex = 2)
+  # mtext( paste( unique(S$GF2),'g'), at=1:5, side=1, line=0.5, cex=1.2)
+  # mtext( expression('surface increase ' (mm^2)), at=0.5, side=3, line=-2, cex=1.3)
+  # axis(1, at = 0:5, labels = c('', paste( unique(S$GF2),'g')), cex.lab=1.4, cex.axis=1.4, pos=0)
+  
+  yticklbl <- seq(from=140,to=260,by=20)
+  axis(1, at = 0:5, labels = c('', unique(S$G)), cex.lab=1.4, cex.axis=1.4, pos=140)
+  axis(2, at = yticklbl, labels = c(0,yticklbl[-1]), cex.lab=1.4, cex.axis=1.4, las=1)
+  
+  plotrix::axis.break(2,145,style="slash") 
+  
+  title(xlab = expression(italic(g)*'-force'), cex.lab = 1.4, line = 1.8)
+  title(ylab = 'percentage surface increase (%)', cex.lab=1.4,line = 3.6)
+
+  # the legend
+  {  
+  llx = 1.5       # lower-left corner of legend x-coordinate
+  lly = 160       # lower-left corner of legend y-coordinate
+  dty = 0.5       # correction for text height, relative to symbol
+  
+  points(llx, lly+5, pch = 21, col="black", bg="grey",cex = 2)
+  text(llx+0.3, lly+5 + dty, "fed", cex = 1.3, font = 1, adj = 0 ) 
+  points(llx, lly, pch = 21, col="black", bg="black", cex = 2)
+  text(llx+0.3, lly+dty, "non-fed", cex = 1.3, font = 1, adj = 0 )
+  }
+  
+  par( op )
+  
+  if(out!='screen'){ dev.off() }
+  
+}
+```
+
+
+### Figure 5
+
+Function to create a scatter plot of two series, with circles as symbols and simple lines as error-bars It includes horizontal lines for averages and a complex y-label.
+
+```{r}
+mk_fig5 <- function(out='screen', S=spongeCN){
+  
+  # N and C values are now uptake over 2 days,
+  # to express in values per day they are divided by 2
+  S$C <- S$C/2
+  S$N <- S$N/2
+  
+  m_C <- aggregate(S$C~S$G,FUN=mean)
+  s_C <- aggregate(S$C~S$G,FUN=sd)
+  se_C <- aggregate(S$C~S$G,FUN=function(x) sd(x)/sqrt(length(x)) )
+  mC <- data.frame(g=m_C[,1], mean=m_C[,2], se=se_C[,2]) 
+  
+  m_N <- aggregate(S$N~S$G,FUN=mean)
+  s_N <- aggregate(S$N~S$G,FUN=sd)
+  se_N <- aggregate(S$N~S$G,FUN=function(x) sd(x)/sqrt(length(x)) )
+  mN <- data.frame(g=m_N[,1], mean=m_N[,2], se=se_N[,2]) 
+  
+  # define vectors for location on x-axis and vertical 
+  # (standard error) lines
+  
+  xf <- c(1:5)
+  xn <- c(1:5)
+  xfl <- c( rbind(xf,xf,rep(NA,5)) )
+  yfl <- c( rbind( mC$mean+mC$se, mC$mean-mC$se, rep(NA,5)) )
+  xnfl <- c( rbind(xn,xn,rep(NA,5)) )
+  ynfl <- c( rbind( mN$mean+mN$se, mN$mean-mN$se, rep(NA,5)) )
+  
+  Cavg <- mean(mC$mean)
+  Navg <- mean(mN$mean)
+  
+  label_yaxis1 <- 'Amino acid assimilation'
+  label_yaxis2 <- expression('('*μmol~C~or~N[~tracer]~mmol~C~or~N[~sponge]^{-1}~d^{−1}*')')
+  label_yaxis3 <- expression('('*μmol~C~or~N[~tracer]~(mmol~C~or~N[~sponge]~d)^{−1}*')')
+  
+  
+  if(out=='png'){ png('fig5.png') }
+  if(out=='pdf'){ pdf('fig5.pdf') }
+  
+  # svg doesn't work with expression
+  # if(out=='svg'){ svg('fig5.svg') }
+
+  op <- par(no.readonly = TRUE)
+  par(mar=c(4,7,0.5,0.5))
+  
+  plot(xf, mC$mean, type='n', xaxt="n", bty='n', las=1,
+       xlim = c(0, 6), ylim = c(0, 3), xlab = "", xaxs="i",
+       ylab = '', cex.lab=1.2, cex.axis=1.4)
+  
+  lines(c(-0.1,5.2),c(Cavg,Cavg),col='grey',lty=2,lwd=2)
+  lines(c(-0.1,5.2),c(Navg,Navg),col='grey',lty=2,lwd=2)
+  lines(xfl, yfl, col = "black")
+  lines(xnfl, ynfl, col = "black")
+  
+  points(xf, mC$mean, col = "black", pch = 21, bg = "grey", cex = 2)
+  points(xn, mN$mean, col = "black", pch = 21, bg = "black", cex = 2)
+  
+  # mtext( paste(S$G, 'g'), at=1:5, side=1, line=0.3, cex=1.2)
+  # mtext( 'uptake (umol/day)', at = 0, side=3, line=0, cex=1.3)
+  # axis(1, at = 0:5, labels = c('', paste( unique(S$G),'g')), cex.lab=1.4, cex.axis=1.4, pos=0)
+  axis(1, at = 0:5, labels = c('', unique(S$G)), cex.lab=1.4, cex.axis=1.4, pos=0)
+  title(ylab = label_yaxis1, cex.lab = 1.4, line = 5.7)
+  title(ylab = label_yaxis2, cex.lab = 1.4, line = 3.3)
+  # alternative 2nd line in y-axis label
+  # title(ylab = label_yaxis3, cex.lab = 1.4, line = 3.3)
+  
+  title(xlab = expression(italic(g)*'-force'), cex.lab = 1.4, line = 1.8)
+  
+  
+  text(5.5, Cavg, "C", cex = 1.5, font = 1, adj = 0, col="darkgrey")
+  text(5.5, Navg, "N", cex = 1.5, font = 1, adj = 0)
+  
+  par( op )
+  
+  if(out!='screen'){ dev.off() }
+  
+}
+```
+
+
+
+## Analysis 1: Surface area
+
+In this section, the influence of hypergravity conditions and feeding on
+surface area increase of growing sponges is investigated.
+First exploratory graphs are made and therafter the relations are tested with
+a linear model. Finally, a graph is made to communicate the relations well.
+
+The boxplots below give an overall impression of the effects on the surface area
+of sponges under influcence of g-force and being 'fed' versus 'non-fed'.
+
+```{r echo=FALSE}
+oldpar <- par(no.readonly = T)
+```
+
+```{r}
+par(oma = c(2, 3, 2, 0), # two rows of text at the outer left and bottom margin
+    mar = c(1, 3, 1, 1), # space for one row of text at ticks 
+    mgp = c(2, 1, 0),    # axis label at 2 rows distance, tick labels at 1 row
+    xpd = NA)            # allow content to protrude into outer margin (and beyond)
+
+boxplot(surface~as.factor(G), data=spongeSO, subset = (label == 'N'),
+        boxwex = 0.2, at = 1:5 - 0.15, xlim=c(0.5,5.5), ylim=c(0,1.5),
+        frame=FALSE,pty="m",xaxt="n",
+        col = "darkgrey", main='')
+
+boxplot(surface~as.factor(G), data=spongeSO, subset = (label == 'L'), add=TRUE,
+        boxwex = 0.2, at = 1:5 + 0.15, xlim=c(0.5,5.5), ylim=c(0,1.5),
+        frame=FALSE,pty="m",xaxt="n",yaxt='n',
+        col = "white", main='')
+
+mtext( unique(spongeSO$G),at=1:5,side=1,line=0.5)
+mtext( 'g-force',at=3,side=1,line=1.5)
+legend(4.5,1.5, c('non-fed','fed'), fill=c("grey","white"),bty = "n")
+mtext('surface (mm)',at=0.75,side=2,line=2.5)
+```
+
+```{r echo=FALSE}
+par(oldpar)
+``` 
+
+Surface and g-force are negatively related. By treating g-force (appropriately) 
+as a numerical variable, it becomes apparent that this relation is quite linear.
+
+```{r}
+plot(surface~jitter(G), data=spongeSO, subset = (label == 'N'),
+     xlim=c(-2,22),ylim=c(0,1.6),bty='n',col='blue',xlab='',ylab='')
+par(new=TRUE)
+plot(surface~jitter(G), data=spongeSO, subset = (label == 'L'),pch=3,
+     xlim=c(-2,22),ylim=c(0,1.6),bty='n',col='red',
+     xlab='g-force',ylab='Surface area increase (sq.mm)')
+legend(15,1.4, c('non-fed','fed'), pch=c(1,3),col=c('blue','red'),bty = "n")
+
+``` 
+
+The relation between surface, g-force and being fed or not fed), can be tested formally 
+via multiple linear regression. This is done below.
+
+```{r}
+summary( mB1 <- lm(surface~G,data=spongeSO) )
+summary( mB2 <- lm(surface~G+label,data=spongeSO) )
+summary( mB3 <- lm(surface~G*label,data=spongeSO) )
+```
+
+### Graphical display 
+
+```{r}
+mk_fig4()
+```
+
+The figure depicts surface area increase (expressed as % of initial size) of fed 
+and non-fed sponges under the different hypergravity forces. The circles give 
+averages and the error bars represent standard errors of the mean.
+
+
+### Conclusion 
+
+Relative surface increase is influenced linearly by g-force and not by 
+sponges being fed or non-fed (model mB1). This model explains however 
+only 5% of the variance. 
+
+
+## Analysis 2: C and N incorporation in sponge tissue
+
+In this section, the influence of hypergravity conditions and reaching stage4
+(osculum formation) on the incorporation of isotopically-enriched (13C and 15N) 
+amino acids is investigated for developing E. fluviatilis. 
+The relation is tested with simple linear models and visualised.
+
+### The results for C
+```{r}
+summary( CG <- lm(C~Gc,data=spongeCN) )
+summary( CO <- lm(C~stage4,data=spongeCN) )
+summary( CGO <- lm(C~Gc+stage4,data=spongeCN) )
+```
+
+### The results for N
+```{r}
+summary( NG <- lm(N~Gc,data=spongeCN) )
+summary( NO <- lm(N~stage4,data=spongeCN) )
+summary( NGO <- lm(N~Gc+stage4,data=spongeCN) )
+```
+
+Given that the model `NG` shows a significianct effect we also conduct 
+a post-hoc tests to see which pairs of means are different.
+
+```{r}
+TukeyHSD(aov(NG))
+```
+
+### Graphical display 
+
+```{r}
+mk_fig5()
+```
+
+The graph shows the influence of hypergravity conditions on the incorporation of 
+isotopically-enriched (13C and 15N) amino acids in developing E. fluviatilis.  
+The dotted line represents the average uptake across all g-force levels, the 
+error bars represent standard errors of the mean. Especially the N uptake at 
+5 g and 20 g deviate from the average (in opposing directions).
+
+
+### Conclusion 
+
+There seem to be only very marginal effects on C and N uptake in the 
+sponge tissue due to g-force and osculum formation.
+Osculum formation has no inflence on uptake of C nor N. 
+Hypergravity has a differential effect on C and N: for C uptake there is no 
+effect, but for N uptake there might be an effect (under 5 g the uptake is high
+while under 20 g it appears to be low).
+However the underlying explanation for this pattern is lacking.
+
+
+## Analysis 3:  osculum formation
+
+```{r}
+summary( mB1 <- glm(stage4~G,data=spongeSO,family=binomial) )
+summary( mB2 <- glm(stage4~label,data=spongeSO,family=binomial) )
+summary( mB3 <- glm(stage4~G+label,data=spongeSO,family=binomial) )
+summary( mB4 <- glm(stage4~label*G,data=spongeSO,family=binomial) )
+```
+
+We test whether the model with interaction (mB4) is indeed better than model 
+without (mB1) it appears to be so, with p=0.001
+
+```{r}
+lmtest::lrtest(mB1,mB4)
+```
+
+And calculate Nagelkerke's R2 as a metric expressing effect-size by the best 
+model.
+
+```{r}
+R2NK(mB4)
+```
+
+### Conclusion 
+
+The formation of Oscula is influenced by  by sponges being fed or non-fed
+in interaction with g-force.
+
